@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 const todoRoutes = express.Router();
 const Todo = require('./todo.js');
 const mongoose = require("mongoose");
@@ -53,12 +53,18 @@ todoRoutes.route('/update/:id').post(function(req, res) {
     });
 });
 app.use('/todos', todoRoutes);
+if(process.env.NODE_ENV === 'production'){
+   app.use(express.static('../../build'));
+   app.get('*', (req, res)=>{
+    res.send(path.join(__dirname, '..','..','build', 'index.html'));
+   }) 
+}
 
 app.listen(PORT, function() {
     console.log("Server is running on Port: " + PORT);
     
 });
-mongoose.connect('mongodb://localhost/heroku', { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/heroku', { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
 mongoose.connection.once('open', () => {
     console.log("Mongodb hosted at", 'localhost', "is now connected")
 }).on('error', () => {
